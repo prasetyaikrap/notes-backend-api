@@ -1,4 +1,6 @@
 import { nanoid } from "nanoid";
+import InvariantError from "../../exception/InvariantError.js";
+import NotFoundError from "../../exception/NotFoundError.js";
 
 export default class NotesService {
   constructor() {
@@ -23,7 +25,7 @@ export default class NotesService {
 
     const isSuccess = this._notes.filter((note) => note.id === id).length > 0;
     if (!isSuccess) {
-      throw new Error("Catatan gagal ditambahkan");
+      throw new InvariantError("Catatan gagal ditambahkan");
     } else {
       return id;
     }
@@ -36,7 +38,7 @@ export default class NotesService {
   getNoteById(id) {
     const note = this._notes.filter((n) => n.id === id)[0];
     if (!note) {
-      throw new Error("Catatan tidak ditemukan");
+      throw new NotFoundError("Catatan tidak ditemukan");
     } else {
       return note;
     }
@@ -55,7 +57,7 @@ export default class NotesService {
         updatedAt,
       };
     } else {
-      throw new Error("Gagal memperbarui catatan. Id tidak ditemukan");
+      throw new NotFoundError("Gagal memperbarui catatan. Id tidak ditemukan");
     }
   }
 
@@ -65,7 +67,7 @@ export default class NotesService {
     if (index !== -1) {
       this._notes.splice(index, 1);
     } else {
-      throw new Error("Catatan gagal dihapus. Id tidak ditemukan");
+      throw new NotFoundError("Catatan gagal dihapus. Id tidak ditemukan");
     }
   }
 }

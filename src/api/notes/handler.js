@@ -1,6 +1,9 @@
+import ClientError from "../../exception/ClientError.js";
+
 export default class NotesHandler {
-  constructor(service) {
+  constructor(service, validator) {
     this._service = service;
+    this._validator = validator;
     this.postNoteHandler = this.postNoteHandler.bind(this);
     this.getNotesHandler = this.getNotesHandler.bind(this);
     this.getNoteByIdHandler = this.getNoteByIdHandler.bind(this);
@@ -10,6 +13,7 @@ export default class NotesHandler {
 
   postNoteHandler(request, h) {
     try {
+      this._validator.validateNotePayload(request.payload);
       const { title = "untitled", body, tags } = request.payload;
       const noteId = this._service.addNote({ title, body, tags });
       const response = h.response({
@@ -22,11 +26,21 @@ export default class NotesHandler {
       response.code(201);
       return response;
     } catch (err) {
+      if (err instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: err.message,
+        });
+        response.code(err.statusCode);
+        return response;
+      }
+      // Server ERROR!
       const response = h.response({
-        statud: "fail",
-        message: err.message,
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
       });
-      response.code(400);
+      response.code(500);
+      console.error(err);
       return response;
     }
   }
@@ -53,11 +67,21 @@ export default class NotesHandler {
         },
       };
     } catch (err) {
+      if (err instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: err.message,
+        });
+        response.code(err.statusCode);
+        return response;
+      }
+      // Server ERROR!
       const response = h.response({
-        status: "fail",
-        message: err.message,
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
       });
-      response.code(404);
+      response.code(500);
+      console.error(err);
       return response;
     }
   }
@@ -65,17 +89,28 @@ export default class NotesHandler {
   putNoteByIdHandler(request, h) {
     try {
       const { id } = request.params;
+      this._validator.validateNotePayload(request.payload);
       this._service.editNoteById(id, request.payload);
       return {
         status: "success",
         message: "Catatan berhasil diperbarui",
       };
     } catch (err) {
+      if (err instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: err.message,
+        });
+        response.code(err.statusCode);
+        return response;
+      }
+      // Server ERROR!
       const response = h.response({
-        status: "fail",
-        message: err.message,
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
       });
-      response.code(404);
+      response.code(500);
+      console.error(err);
       return response;
     }
   }
@@ -89,11 +124,21 @@ export default class NotesHandler {
         message: "Catatan berhasil dihapus",
       };
     } catch (err) {
+      if (err instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: err.message,
+        });
+        response.code(404);
+        return response;
+      }
+      // Server ERROR!
       const response = h.response({
-        status: "fail",
-        message: err.message,
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
       });
-      response.code(404);
+      response.code(500);
+      console.error(err);
       return response;
     }
   }
